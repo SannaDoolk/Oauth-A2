@@ -16,6 +16,7 @@
   "private": true,
   "dependencies": {
     "express": "^4.17.2",
+    "express-hbs": "^2.4.0",
     "helmet": "^5.0.2",
     "http-errors": "^2.0.0",
     "mongoose": "^6.1.8",
@@ -39,4 +40,3 @@
     "ext": "js,json,hbs,html,css"
   }
 }
-

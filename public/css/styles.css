@@ -1,0 +1,10 @@
+body {
+  background-color: pink;
+}
+
+.login-button {
+  width: 250px;
+  height: 70px;
+  font-size: 20px;
+  border: 0.2px solid black;
+}

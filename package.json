@@ -1,0 +1,42 @@
+{
+  "name": "assignment-wt1-oauth",
+  "version": "1.0.0",
+  "description": "1DV027 - Assignment WT 1",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "NODE_ENV=production node src/server.js",
+    "start:dev": "NODE_ENV=development nodemon --inspect -r dotenv/config src/server.js",
+    "lint": "npx eslint ./src || exit 0",
+    "lint:fix": "npx eslint ./src --fix || exit 0"
+  },
+  "repository": "git@gitlab.lnu.se:1dv027/student/sd222si/assignment-wt1-oauth.git",
+  "author": "Sanna Doolk <sd222si@lnu.se",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "express": "^4.17.2",
+    "helmet": "^5.0.2",
+    "http-errors": "^2.0.0",
+    "mongoose": "^6.1.8",
+    "morgan": "^1.10.0",
+    "nodemon": "^2.0.15"
+  },
+  "devDependencies": {
+    "@lnu/eslint-config": "^1.1.3",
+    "dotenv": "^8.2.0",
+    "eslint": "^7.30.0",
+    "eslint-config-standard": "^16.0.3",
+    "eslint-plugin-import": "^2.23.4",
+    "eslint-plugin-jsdoc": "^35.4.2",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^5.1.0"
+  },
+  "eslintConfig": {
+    "extends": "@lnu"
+  },
+  "nodemonConfig": {
+    "ext": "js,json,hbs,html,css"
+  }
+}
+

@@ -35,6 +35,7 @@ export class OauthController {
    */
   async login (req, res, next) {
     try {
+      console.log('login')
       const stateString = this.generateRandomString(15)
       const authorizeLink = `https://gitlab.lnu.se/oauth/authorize?client_id=${process.env.APP_ID}&redirect_uri=${process.env.REDIRECT_URI}&response_type=code&state=${stateString}&scope=read_user`
 
@@ -59,16 +60,19 @@ export class OauthController {
    * @param {object} next - Express next middleware function.
    */
   async redirect (req, res, next) {
+    const getAccessTokenUrl = `https://gitlab.lnu.se/oauth/token?client_id=${process.env.APP_ID}&client_secret=${process.env.SECRET}&code=${req.query.code}&grant_type=authorization_code&redirect_uri=${process.env.REDIRECT_URI}`
+
+    const request = await fetch(getAccessTokenUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    const response = await request.text()
+    console.log(response)
+
     console.log('redirected')
-    // GET /oauth/callback?code=3876a0f7fa45655dd50a1f82365dce95cd515803d96f7fd62cdcfb1b276e7d76&state=jC3QKJPzFhpjvJi 200 58.398 ms - 345
 
-    // "https://gitlab.lnu.se/oauth/token/client_id=${process.env.app_id}&client_secret=${p[…]pe=authorization_code&redirect_uri=${process.env.redirect_url}
-    
-    // `https://gitlab.lnu.se/oauth/token?client_id=${process.env.APP_ID}&client_secret=${process.env.SECRET}&code=${req.query.code}&redirect_uri=${process.env.REDIRECT_URI}` 
-
-    // parameters = 'client_id=APP_ID&client_secret=APP_SECRET&code=RETURNED_CODE&grant_type=authorization_code&redirect_uri=REDIRECT_URI'
-
-    console.log(req.query.code)
     res.render('home/callback')
   }
 

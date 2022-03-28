@@ -12,5 +12,6 @@ export const router = express.Router()
 
 const oauthController = new OauthController()
 
-router.get('/', oauthController.index)
- 
+router.get('/', (req, res, next) => oauthController.index(req, res, next))
+router.get('/login', (req, res, next) => oauthController.login(req, res, next))
+router.get('/callback', (req, res, next) => oauthController.redirect(req, res, next)) // redirect

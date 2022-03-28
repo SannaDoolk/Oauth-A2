@@ -10,4 +10,4 @@ import { router as oauthRouter } from './oauth-router.js'
 
 export const router = express.Router()
 
-router.use('/', oauthRouter)
+router.use('/oauth', oauthRouter)

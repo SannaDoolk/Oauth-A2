@@ -40,7 +40,6 @@ export class OauthController {
       const stateString = this.generateRandomString(15)
       const authorizeLink = `https://gitlab.lnu.se/oauth/authorize?client_id=${process.env.APP_ID}&redirect_uri=${process.env.REDIRECT_URI}&response_type=code&state=${stateString}&scope=read_user+profile+email`
 
-      console.log(authorizeLink)
       res.redirect(authorizeLink)
     } catch (error) {
       console.log(error)
@@ -94,31 +93,19 @@ export class OauthController {
       lastActivity: userInfoResponse.last_activity_on
     }
     res.render('home/home', { viewData })
-
-    // DELA UPP
-    /*const request2 = await fetch(`https://gitlab.lnu.se/api/v4/users/${userInfo.userId}/events?per_page=100&page=1&page=1&access_token=${token}`, {
-      method: 'GET'
-    })
-    const response2 = await request2.json()*/
-
-    // GER BARA 100 HÄNDELSER
-
-    /*const request3 = await fetch(`https://gitlab.lnu.se/api/v4/users/${userInfo.userId}/events?per_page=100&page=2&access_token=${token}`, {
-      method: 'GET',
-      headers: {
-        //headers: { 'PRIVATE-TOKEN': token }
-      }
-    })
-    const response3 = await request3.json()
-    console.log(response3)*/
   }
 
-  async getActivities (req, res, next) {
+  async getUserActivities (req, res, next) {
     const activitiesRequest = await fetch(`https://gitlab.lnu.se/api/v4/users/${req.session.userID}/events?per_page=100&page=1&page=1&access_token=${req.session.access_token}`, {
       method: 'GET'
     })
-
     const activitiesResponse = await activitiesRequest.json()
+    // BÄTTRE LÖSNING??
+    const activitiesRequestPage2 = await fetch(`https://gitlab.lnu.se/api/v4/users/${req.session.userID}/events?per_page=100&page=2&access_token=${req.session.access_token}`, {
+      method: 'GET'
+    })
+
+    const activitiesResponsePage2 = await activitiesRequestPage2.json()
 
     const viewData = {
       activities: activitiesResponse.map(activity => ({
@@ -128,6 +115,17 @@ export class OauthController {
         targetType: activity.target_type
       }))
     }
+    const pageTwo = {
+      activities: activitiesResponsePage2.map(activity => ({
+        actionName: activity.action_name,
+        createdAt: activity.created_at,
+        targetTitle: activity.target_title,
+        targetType: activity.target_type
+      }))
+    }
+
+    viewData.activities.push(pageTwo.activities[0])
+    console.log(viewData.activities.length)
 
     res.render('home/activities', { viewData })
   }
@@ -142,7 +140,7 @@ export class OauthController {
    */
   async isUserLoggedIn (req, res, next) {
     console.log('checked if user is logged in')
-    if (!req.session.userID) {
+    if (!req.session.access_token) {
       return next(createError(404), 'Page not found')
     }
     next()

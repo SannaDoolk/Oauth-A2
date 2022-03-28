@@ -17,4 +17,4 @@ router.get('/login', (req, res, next) => oauthController.login(req, res, next))
 router.get('/callback', (req, res, next) => oauthController.redirect(req, res, next)) // redirect
 router.get('/home', (req, res, next) => oauthController.isUserLoggedIn(req, res, next), (req, res, next) => oauthController.getProfileInfo(req, res, next))
 
-router.get('/activities', (req, res, next) => oauthController.isUserLoggedIn(req, res, next), (req, res, next) => oauthController.getActivities(req, res, next))
+router.get('/activities', (req, res, next) => oauthController.isUserLoggedIn(req, res, next), (req, res, next) => oauthController.getUserActivities(req, res, next))

@@ -37,14 +37,8 @@ export class OauthController {
     try {
       console.log('login')
       const stateString = this.generateRandomString(15)
-      const authorizeLink = `https://gitlab.lnu.se/oauth/authorize?client_id=${process.env.APP_ID}&redirect_uri=${process.env.REDIRECT_URI}&response_type=code&state=${stateString}&scope=read_user`
+      const authorizeLink = `https://gitlab.lnu.se/oauth/authorize?client_id=${process.env.APP_ID}&redirect_uri=${process.env.REDIRECT_URI}&response_type=code&state=${stateString}&scope=read_user+profile+email`
 
-    // https://gitlab.example.com/oauth/authorize?client_id=APP_ID&redirect_uri=REDIRECT_URI&response_type=code&state=STATE&scope=REQUESTED_SCOPES
-
-
-    /*const response = await fetch(authorizeLink, {
-      method: 'POST'
-    })*/
       console.log(authorizeLink)
       res.redirect(authorizeLink)
     } catch (error) {
@@ -68,12 +62,45 @@ export class OauthController {
         'Content-Type': 'application/json'
       }
     })
-    const response = await request.text()
-    console.log(response)
-
-    console.log('redirected')
+    const response = await request.json()
+    this.getProfileInfo(response.access_token)
 
     res.render('home/callback')
+  }
+
+  async getProfileInfo (token) {
+    const request = await fetch(`https://gitlab.lnu.se/api/v4/user?access_token=${token}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    const userInfoResponse = await request.json()
+
+    const userInfo = {
+      name: userInfoResponse.name,
+      username: userInfoResponse.username,
+      userId: userInfoResponse.id,
+      userAvatar: userInfoResponse.avatar_url,
+      lastActivity: userInfoResponse.last_activity_on
+    }
+
+    // DELA UPP
+    const request2 = await fetch(`https://gitlab.lnu.se/api/v4/users/${userInfo.userId}/events?per_page=100&page=1&page=1&access_token=${token}`, {
+      method: 'GET'
+    })
+    const response2 = await request2.json()
+
+    // GER BARA 100 HÄNDELSER
+
+    /*const request3 = await fetch(`https://gitlab.lnu.se/api/v4/users/${userInfo.userId}/events?per_page=100&page=2&access_token=${token}`, {
+      method: 'GET',
+      headers: {
+        //headers: { 'PRIVATE-TOKEN': token }
+      }
+    })
+    const response3 = await request3.json()
+    console.log(response3)*/
   }
 
   /**

@@ -63,9 +63,9 @@ export class OauthController {
       }
     })
     const response = await request.json()
-    this.getProfileInfo(response.access_token)
+    const viewData = await this.getProfileInfo(response.access_token)
 
-    res.render('home/callback')
+    res.render('home/callback', { viewData })
   }
 
   async getProfileInfo (token) {
@@ -84,12 +84,14 @@ export class OauthController {
       userAvatar: userInfoResponse.avatar_url,
       lastActivity: userInfoResponse.last_activity_on
     }
+    console.log(userInfo)
+    return userInfo
 
     // DELA UPP
-    const request2 = await fetch(`https://gitlab.lnu.se/api/v4/users/${userInfo.userId}/events?per_page=100&page=1&page=1&access_token=${token}`, {
+    /*const request2 = await fetch(`https://gitlab.lnu.se/api/v4/users/${userInfo.userId}/events?per_page=100&page=1&page=1&access_token=${token}`, {
       method: 'GET'
     })
-    const response2 = await request2.json()
+    const response2 = await request2.json()*/
 
     // GER BARA 100 HÄNDELSER
 

@@ -6,6 +6,7 @@
  */
 
 import fetch from 'node-fetch'
+import createError from 'http-errors'
 
 /**
  * Encapsulates a controller.
@@ -71,10 +72,6 @@ export class OauthController {
     })
   }
 
-  async home (req, res, next) {
-    res.render('home/home')
-  }
-
   async getProfileInfo (req, res, next) {
     console.log(req.session.access_token)
     const token = req.session.access_token
@@ -85,7 +82,8 @@ export class OauthController {
       }
     })
     const userInfoResponse = await request.json()
-    console.log(userInfoResponse)
+
+    req.session.userID = userInfoResponse.id
 
     const viewData = {
       name: userInfoResponse.name,
@@ -115,6 +113,41 @@ export class OauthController {
     console.log(response3)*/
   }
 
+  async getActivities (req, res, next) {
+    const activitiesRequest = await fetch(`https://gitlab.lnu.se/api/v4/users/${req.session.userID}/events?per_page=100&page=1&page=1&access_token=${req.session.access_token}`, {
+      method: 'GET'
+    })
+
+    const activitiesResponse = await activitiesRequest.json()
+
+    const viewData = {
+      activities: activitiesResponse.map(activity => ({
+        actionName: activity.action_name,
+        createdAt: activity.created_at,
+        targetTitle: activity.target_title,
+        targetType: activity.target_type
+      }))
+    }
+
+    res.render('home/activities', { viewData })
+  }
+
+  /**
+   * Checks if a user is logged in.
+   *
+   * @param {object} req - Express request object.
+   * @param {object} res - Express request object.
+   * @param {Function} next - Express next middleware function.
+   * @returns {Error} 404 error.
+   */
+  async isUserLoggedIn (req, res, next) {
+    console.log('checked if user is logged in')
+    if (!req.session.userID) {
+      return next(createError(404), 'Page not found')
+    }
+    next()
+  }
+
   /**
    * .
    *
@@ -132,14 +165,3 @@ export class OauthController {
     return result
   }
 }
-
-// https://gitlab.example.com/oauth/authorize?client_id=APP_ID&redirect_uri=REDIRECT_URI&response_type=code&state=STATE&scope=REQUESTED_SCOPES
-
-// https://gitlab.lnu.se/oauth/authorize?client_id=0137c54dbf8b51b8f623f155a118a098a16b9773e304141a3ebf87da10a0ea06&redirect_uri=http://localhost:8080/oauth/callback&response_type=code&state=dupTtqYI1KF2rAY&scope=read_user
-/*
-
-      const response = await fetch(`${process.env.API_LINK}${req.params.id}`, {
-        method: 'GET',
-        headers: { 'PRIVATE-TOKEN': process.env.ACCESS_TOKEN }
-      }) 
-*/      

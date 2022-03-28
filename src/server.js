@@ -29,7 +29,7 @@ async function main () {
     helmet({
       contentSecurityPolicy: {
         directives: {
-          ...helmet.contentSecurityPolicy.getDefaultDirectives(), 
+          ...helmet.contentSecurityPolicy.getDefaultDirectives(),
           'default-src': ["'self'"],
           'script-src': ["'self'", 'https://gitlab.lnu.se/', 'cdn.jsdelivr.net'],
           'img-src': ["'self'", 'https://gitlab.lnu.se/', '*.gravatar.com', 'cdn.jsdelivr.net']

@@ -63,12 +63,21 @@ export class OauthController {
       }
     })
     const response = await request.json()
-    const viewData = await this.getProfileInfo(response.access_token)
 
-    res.render('home/callback', { viewData })
+    req.session.regenerate(() => {
+      req.session.access_token = response.access_token
+
+      res.redirect('home')
+    })
   }
 
-  async getProfileInfo (token) {
+  async home (req, res, next) {
+    res.render('home/home')
+  }
+
+  async getProfileInfo (req, res, next) {
+    console.log(req.session.access_token)
+    const token = req.session.access_token
     const request = await fetch(`https://gitlab.lnu.se/api/v4/user?access_token=${token}`, {
       method: 'GET',
       headers: {
@@ -76,16 +85,17 @@ export class OauthController {
       }
     })
     const userInfoResponse = await request.json()
+    console.log(userInfoResponse)
 
-    const userInfo = {
+    const viewData = {
       name: userInfoResponse.name,
       username: userInfoResponse.username,
       userId: userInfoResponse.id,
+      userEmail: userInfoResponse.email,
       userAvatar: userInfoResponse.avatar_url,
       lastActivity: userInfoResponse.last_activity_on
     }
-    console.log(userInfo)
-    return userInfo
+    res.render('home/home', { viewData })
 
     // DELA UPP
     /*const request2 = await fetch(`https://gitlab.lnu.se/api/v4/users/${userInfo.userId}/events?per_page=100&page=1&page=1&access_token=${token}`, {

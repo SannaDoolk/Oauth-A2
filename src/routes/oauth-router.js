@@ -15,3 +15,4 @@ const oauthController = new OauthController()
 router.get('/', (req, res, next) => oauthController.index(req, res, next))
 router.get('/login', (req, res, next) => oauthController.login(req, res, next))
 router.get('/callback', (req, res, next) => oauthController.redirect(req, res, next)) // redirect
+router.get('/home', (req, res, next) => oauthController.getProfileInfo(req, res, next))

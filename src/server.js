@@ -8,6 +8,7 @@
 import express from 'express'
 import hbs from 'express-hbs'
 import helmet from 'helmet'
+import session from 'express-session'
 import logger from 'morgan'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
@@ -54,9 +55,24 @@ async function main () {
 
   app.use(express.static(join(directoryFullName, '..', 'public')))
 
+  const sessionOptions = {
+    name: process.env.SESSION_NAME,
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      maxAge: 1000 * 60 * 60 * 24,
+      sameSite: 'lax'
+    }
+  }
+
   if (app.get('env') === 'production') {
     app.set('trust proxy', 1)
+    sessionOptions.cookie.secure = true
   }
+
+  app.use(session(sessionOptions))
 
   const server = http.createServer(app)
 

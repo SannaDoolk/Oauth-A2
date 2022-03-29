@@ -1,11 +1,13 @@
 <h2>Profile info</h2>
+
 <div id="user-info" class="user-info">
   <img src={{viewData.userAvatar}} alt="user-avatar">
-  <p>Name of user: {{viewData.name}}</p>
+  <p>Name: {{viewData.name}}</p>
   <p>Username: {{viewData.username}}</p>
   <p>UserID: {{viewData.userId}}</p>
   <p>Email: {{viewData.userEmail}}</p>
   <p>Last activity: {{viewData.lastActivity}}</p>
 </div>
 
-<button class="latest-activity-button">See lastest activity</button>
+<button class="latest-activity-button"><a href="oauth/activities">Latest activities</a></button>
+<button class="logout-button"><a href="oauth/logout">Logout</a></button>

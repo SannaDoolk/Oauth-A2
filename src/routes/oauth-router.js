@@ -20,3 +20,5 @@ router.get('/callback', (req, res, next) => oauthController.requestAccessToken(r
 router.get('/home', (req, res, next) => oauthController.isUserLoggedIn(req, res, next), (req, res, next) => oauthController.getProfileInfo(req, res, next))
 
 router.get('/activities', (req, res, next) => oauthController.isUserLoggedIn(req, res, next), (req, res, next) => oauthController.getUserActivities(req, res, next))
+
+router.get('/logout', (req, res, next) => oauthController.logout(req, res, next))

@@ -1,9 +1,14 @@
+<button class="profile-button"><a href="oauth/home">Back to profile</a></button>
+
 <h2>Latest activities</h2>
 
 {{#each viewData.activities}}
-<p>{{this.actionName}}</p>
-<p>{{this.createdAt}}</p>
-<p>{{this.targetTitle}}</p>
-<p>{{this.targetType}}</p>
-<p>------------------------------------------</p>
+
+  <div class="activity-field">
+  <p>Action: {{this.actionName}}</p>
+  <p>Created at: {{this.createdAt}}</p>
+  <p>Target title: {{this.targetTitle}}</p>
+  <p>Target type: {{this.targetType}}</p>
+  </div>
+
 {{/each}}

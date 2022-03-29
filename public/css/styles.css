@@ -1,10 +1,46 @@
 body {
-  background-color: pink;
+  background-color: rgb(57, 95, 160);
+  font-family: Georgia, 'Times New Roman', Times, serif;
 }
 
-.login-button {
-  width: 250px;
-  height: 70px;
+h1 {
+  font-size: 50px;
+}
+
+a {
+  text-decoration: none;
+  color: rgb(206, 206, 211);
+}
+
+.login-button,
+.latest-activity-button,
+.profile-button,
+.logout-button {
+  width: auto;
+  height: 50px;
+  padding: 12px;
+  font-size: 25px;
+  color: azure;
+  border: 0.2px solid black;
+  background-color: rgb(2, 17, 31);
+  box-shadow: 6px 6px 2px 1px rgba(255, 255, 255, 0.2);
+}
+
+.latest-activity-button {
+  margin-top: 20px;
+}
+
+.user-info,
+.activity-field {
+  padding: 25px;
+  color: azure;
   font-size: 20px;
   border: 0.2px solid black;
+  background-color: rgb(2, 17, 31);
+}
+
+.activity-field {
+  font-size: 18px;
+  padding: 10px;
+  margin-bottom: 7px;
 }

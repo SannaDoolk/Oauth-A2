@@ -169,6 +169,11 @@ export class OauthController {
     res.render('home/activities', { viewData })
   }
 
+  async logout (req, res, next) {
+    req.session.destroy()
+    res.redirect('/oauth')
+  }
+
   /**
    * Generates a random string to be used for state in request.
    *

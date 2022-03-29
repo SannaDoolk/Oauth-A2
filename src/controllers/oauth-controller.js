@@ -34,10 +34,11 @@ export class OauthController {
    * @param {object} res - Express request object.
    * @param {object} next - Express next middleware function.
    */
-  async login (req, res, next) {
+  async requestAuthorization (req, res, next) {
     try {
-      console.log('login')
       const stateString = this.generateRandomString(15)
+      req.session.state = stateString
+
       const authorizeLink = `https://gitlab.lnu.se/oauth/authorize?client_id=${process.env.APP_ID}&redirect_uri=${process.env.REDIRECT_URI}&response_type=code&state=${stateString}&scope=read_user+profile+email`
 
       res.redirect(authorizeLink)
@@ -53,22 +54,30 @@ export class OauthController {
    * @param {object} res - Express request object.
    * @param {object} next - Express next middleware function.
    */
-  async redirect (req, res, next) {
-    const getAccessTokenUrl = `https://gitlab.lnu.se/oauth/token?client_id=${process.env.APP_ID}&client_secret=${process.env.SECRET}&code=${req.query.code}&grant_type=authorization_code&redirect_uri=${process.env.REDIRECT_URI}`
+  async requestAccessToken (req, res, next) {
+    try {
+      if (req.query.state === req.session.state) {
+        const getAccessTokenUrl = `https://gitlab.lnu.se/oauth/token?client_id=${process.env.APP_ID}&client_secret=${process.env.SECRET}&code=${req.query.code}&grant_type=authorization_code&redirect_uri=${process.env.REDIRECT_URI}`
 
-    const request = await fetch(getAccessTokenUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
+        const request = await fetch(getAccessTokenUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+        const response = await request.json()
+
+        req.session.regenerate(() => {
+          req.session.access_token = response.access_token
+
+          res.redirect('home')
+        })
+      } else {
+        res.redirect('/oauth')
       }
-    })
-    const response = await request.json()
-
-    req.session.regenerate(() => {
-      req.session.access_token = response.access_token
-
-      res.redirect('home')
-    })
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   async getProfileInfo (req, res, next) {

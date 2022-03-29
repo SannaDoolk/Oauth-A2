@@ -104,7 +104,6 @@ export class OauthController {
    * @param {object} next - Express next middleware function.
    */
   async getProfileInfo (req, res, next) {
-    console.log(req.session.access_token)
     const token = req.session.access_token
     const request = await fetch(`https://gitlab.lnu.se/api/v4/user?access_token=${token}`, {
       method: 'GET',
@@ -135,11 +134,13 @@ export class OauthController {
    * @param {object} next - Express next middleware function.
    */
   async getUserActivities (req, res, next) {
-    const activitiesRequest = await fetch(`https://gitlab.lnu.se/api/v4/users/${req.session.userID}/events?per_page=100&page=1&page=1&access_token=${req.session.access_token}`, {
+    const activitiesRequestPage1 = await fetch(`https://gitlab.lnu.se/api/v4/users/${req.session.userID}/events?per_page=100&page=1&page=1&access_token=${req.session.access_token}`, {
       method: 'GET'
     })
-    const activitiesResponse = await activitiesRequest.json()
-    // BÄTTRE LÖSNING??
+    const activitiesResponsePage1 = await activitiesRequestPage1.json()
+
+    // Gör ett andra anrop här eftersom gitlab genererar max 100 activities, känns som det borde finnas ett bättre sätt att lösa detta men har inte fått något annat att fungera.
+
     const activitiesRequestPage2 = await fetch(`https://gitlab.lnu.se/api/v4/users/${req.session.userID}/events?per_page=100&page=2&access_token=${req.session.access_token}`, {
       method: 'GET'
     })
@@ -147,15 +148,7 @@ export class OauthController {
     const activitiesResponsePage2 = await activitiesRequestPage2.json()
 
     const viewData = {
-      activities: activitiesResponse.map(activity => ({
-        actionName: activity.action_name,
-        createdAt: activity.created_at,
-        targetTitle: activity.target_title,
-        targetType: activity.target_type
-      }))
-    }
-    const pageTwo = {
-      activities: activitiesResponsePage2.map(activity => ({
+      activities: activitiesResponsePage1.map(activity => ({
         actionName: activity.action_name,
         createdAt: activity.created_at,
         targetTitle: activity.target_title,
@@ -163,12 +156,27 @@ export class OauthController {
       }))
     }
 
-    viewData.activities.push(pageTwo.activities[0])
-    console.log(viewData.activities.length)
+    // Plockar ut activity 101 från page 2
+    const oneHundredOneActivity = {
+      actionName: activitiesResponsePage2[0].action_name,
+      createdAt: activitiesResponsePage2[0].created_at,
+      targetTitle: activitiesResponsePage2[0].target_title,
+      targetType: activitiesResponsePage2[0].target_type
+    }
+
+    // Lägger till activity 101 till arrayen med dom 100 första.
+    viewData.activities.push(oneHundredOneActivity)
 
     res.render('home/activities', { viewData })
   }
 
+  /**
+   * Destroys the session and logs out the user.
+   *
+   * @param {object} req - Express request object.
+   * @param {object} res - Express request object.
+   * @param {object} next - Express next middleware function.
+   */
   async logout (req, res, next) {
     req.session.destroy()
     res.redirect('/oauth')

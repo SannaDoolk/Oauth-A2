@@ -13,7 +13,7 @@ import createError from 'http-errors'
  */
 export class OauthController {
   /**
-   * 
+   * Renders the index page.
    *
    * @param {object} req - Express request object.
    * @param {object} res - Express request object.
@@ -28,7 +28,23 @@ export class OauthController {
   }
 
   /**
-   * .
+   * Checks if a user is logged in.
+   *
+   * @param {object} req - Express request object.
+   * @param {object} res - Express request object.
+   * @param {Function} next - Express next middleware function.
+   * @returns {Error} 404 error.
+   */
+  async isUserLoggedIn (req, res, next) {
+    console.log('checked if user is logged in')
+    if (!req.session.access_token) {
+      return next(createError(404), 'Page not found')
+    }
+    next()
+  }
+
+  /**
+   * Requests an authorization from the service provider.
    *
    * @param {object} req - Express request object.
    * @param {object} res - Express request object.
@@ -48,7 +64,7 @@ export class OauthController {
   }
 
   /**
-   * .
+   * Requests accesstoken from service provider and generates session with it.
    *
    * @param {object} req - Express request object.
    * @param {object} res - Express request object.
@@ -80,6 +96,13 @@ export class OauthController {
     }
   }
 
+  /**
+   * Fetches information about the user from the service provider and renders it.
+   *
+   * @param {object} req - Express request object.
+   * @param {object} res - Express request object.
+   * @param {object} next - Express next middleware function.
+   */
   async getProfileInfo (req, res, next) {
     console.log(req.session.access_token)
     const token = req.session.access_token
@@ -104,6 +127,13 @@ export class OauthController {
     res.render('home/home', { viewData })
   }
 
+  /**
+   * Fetches the users latest activities on the service provider.
+   *
+   * @param {object} req - Express request object.
+   * @param {object} res - Express request object.
+   * @param {object} next - Express next middleware function.
+   */
   async getUserActivities (req, res, next) {
     const activitiesRequest = await fetch(`https://gitlab.lnu.se/api/v4/users/${req.session.userID}/events?per_page=100&page=1&page=1&access_token=${req.session.access_token}`, {
       method: 'GET'
@@ -140,23 +170,7 @@ export class OauthController {
   }
 
   /**
-   * Checks if a user is logged in.
-   *
-   * @param {object} req - Express request object.
-   * @param {object} res - Express request object.
-   * @param {Function} next - Express next middleware function.
-   * @returns {Error} 404 error.
-   */
-  async isUserLoggedIn (req, res, next) {
-    console.log('checked if user is logged in')
-    if (!req.session.access_token) {
-      return next(createError(404), 'Page not found')
-    }
-    next()
-  }
-
-  /**
-   * .
+   * Generates a random string to be used for state in request.
    *
    * @param {string} stringLength - The length of the random string.
    * @returns {string} - The random string.

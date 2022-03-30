@@ -14,7 +14,7 @@ import createError from 'http-errors'
  */
 export class OauthController {
   /**
-   * Renders the index page.
+   * Renders the log in index page.
    *
    * @param {object} req - Express request object.
    * @param {object} res - Express request object.
@@ -92,7 +92,6 @@ export class OauthController {
 
         req.session.regenerate(() => {
           req.session.access_token = response.access_token
-          req.session.loggedIn = true
 
           res.redirect('home')
         })

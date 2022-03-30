@@ -1,4 +1,7 @@
 <div id="container">
+{{#if req.session.loggedIn}}
+  <h1>Hej</h1>
+ {{/if}}
 
 <button class="login-button"><a href="oauth/login">Log in with Gitlab.lnu.se</a></button>
 

@@ -6,6 +6,7 @@
  */
 
 import fetch from 'node-fetch'
+import cryptoRandomString from 'crypto-random-string'
 import createError from 'http-errors'
 
 /**
@@ -36,7 +37,6 @@ export class OauthController {
    * @returns {Error} 404 error.
    */
   async isUserLoggedIn (req, res, next) {
-    console.log('checked if user is logged in')
     if (!req.session.access_token) {
       return next(createError(404), 'Page not found')
     }
@@ -52,7 +52,7 @@ export class OauthController {
    */
   async requestAuthorization (req, res, next) {
     try {
-      const stateString = this.generateRandomString(15)
+      const stateString = this.generateRandomStateString()
       req.session.state = stateString
 
       const authorizeLink = `https://gitlab.lnu.se/oauth/authorize?client_id=${process.env.APP_ID}&redirect_uri=${process.env.REDIRECT_URI}&response_type=code&state=${stateString}&scope=read_user`
@@ -85,6 +85,7 @@ export class OauthController {
 
         req.session.regenerate(() => {
           req.session.access_token = response.access_token
+          req.session.loggedIn = true
 
           res.redirect('home')
         })
@@ -193,17 +194,11 @@ export class OauthController {
   /**
    * Generates a random string to be used for state in request.
    *
-   * @param {string} stringLength - The length of the random string.
    * @returns {string} - The random string.
    */
-  generateRandomString (stringLength) {
-    // Inspired from https://www.programiz.com/javascript/examples/generate-random-strings
-
-    const validCharacters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-    let result = ''
-    for (let i = 0; i < stringLength; i++) {
-      result += validCharacters.charAt(Math.floor(Math.random() * validCharacters.length))
-    }
-    return result
+  generateRandomStateString () {
+    const state = cryptoRandomString({ length: 25, type: 'url-safe' })
+    console.log(state)
+    return state
   }
 }

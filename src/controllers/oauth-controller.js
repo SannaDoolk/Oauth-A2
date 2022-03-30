@@ -55,11 +55,11 @@ export class OauthController {
       const stateString = this.generateRandomString(15)
       req.session.state = stateString
 
-      const authorizeLink = `https://gitlab.lnu.se/oauth/authorize?client_id=${process.env.APP_ID}&redirect_uri=${process.env.REDIRECT_URI}&response_type=code&state=${stateString}&scope=read_user+profile+email`
+      const authorizeLink = `https://gitlab.lnu.se/oauth/authorize?client_id=${process.env.APP_ID}&redirect_uri=${process.env.REDIRECT_URI}&response_type=code&state=${stateString}&scope=read_user`
 
       res.redirect(authorizeLink)
     } catch (error) {
-      console.log(error)
+      next(error)
     }
   }
 
@@ -92,7 +92,7 @@ export class OauthController {
         res.redirect('/oauth')
       }
     } catch (error) {
-      console.log(error)
+      next(error)
     }
   }
 
@@ -104,26 +104,30 @@ export class OauthController {
    * @param {object} next - Express next middleware function.
    */
   async getProfileInfo (req, res, next) {
-    const token = req.session.access_token
-    const request = await fetch(`https://gitlab.lnu.se/api/v4/user?access_token=${token}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
+    try {
+      const token = req.session.access_token
+      const request = await fetch(`https://gitlab.lnu.se/api/v4/user?access_token=${token}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      const userInfoResponse = await request.json()
+
+      req.session.userID = userInfoResponse.id
+
+      const viewData = {
+        name: userInfoResponse.name,
+        username: userInfoResponse.username,
+        userId: userInfoResponse.id,
+        userEmail: userInfoResponse.email,
+        userAvatar: userInfoResponse.avatar_url,
+        lastActivity: userInfoResponse.last_activity_on
       }
-    })
-    const userInfoResponse = await request.json()
-
-    req.session.userID = userInfoResponse.id
-
-    const viewData = {
-      name: userInfoResponse.name,
-      username: userInfoResponse.username,
-      userId: userInfoResponse.id,
-      userEmail: userInfoResponse.email,
-      userAvatar: userInfoResponse.avatar_url,
-      lastActivity: userInfoResponse.last_activity_on
+      res.render('home/home', { viewData })
+    } catch (error) {
+      next(error)
     }
-    res.render('home/home', { viewData })
   }
 
   /**
@@ -134,40 +138,44 @@ export class OauthController {
    * @param {object} next - Express next middleware function.
    */
   async getUserActivities (req, res, next) {
-    const activitiesRequestPage1 = await fetch(`https://gitlab.lnu.se/api/v4/users/${req.session.userID}/events?per_page=100&page=1&page=1&access_token=${req.session.access_token}`, {
-      method: 'GET'
-    })
-    const activitiesResponsePage1 = await activitiesRequestPage1.json()
+    try {
+      const activitiesRequestPage1 = await fetch(`https://gitlab.lnu.se/api/v4/users/${req.session.userID}/events?per_page=100&page=1&page=1&access_token=${req.session.access_token}`, {
+        method: 'GET'
+      })
+      const activitiesResponsePage1 = await activitiesRequestPage1.json()
 
-    // Gör ett andra anrop här eftersom gitlab genererar max 100 activities, känns som det borde finnas ett bättre sätt att lösa detta men har inte fått något annat att fungera.
+      // Gör ett andra anrop här eftersom gitlab genererar max 100 activities, känns som det borde finnas ett bättre sätt att lösa detta men har inte fått något annat att fungera.
 
-    const activitiesRequestPage2 = await fetch(`https://gitlab.lnu.se/api/v4/users/${req.session.userID}/events?per_page=100&page=2&access_token=${req.session.access_token}`, {
-      method: 'GET'
-    })
+      const activitiesRequestPage2 = await fetch(`https://gitlab.lnu.se/api/v4/users/${req.session.userID}/events?per_page=100&page=2&access_token=${req.session.access_token}`, {
+        method: 'GET'
+      })
 
-    const activitiesResponsePage2 = await activitiesRequestPage2.json()
+      const activitiesResponsePage2 = await activitiesRequestPage2.json()
 
-    const viewData = {
-      activities: activitiesResponsePage1.map(activity => ({
-        actionName: activity.action_name,
-        createdAt: activity.created_at,
-        targetTitle: activity.target_title,
-        targetType: activity.target_type
-      }))
+      const viewData = {
+        activities: activitiesResponsePage1.map(activity => ({
+          actionName: activity.action_name,
+          createdAt: activity.created_at,
+          targetTitle: activity.target_title,
+          targetType: activity.target_type
+        }))
+      }
+
+      // Plockar ut activity 101 från page 2
+      const oneHundredOneActivity = {
+        actionName: activitiesResponsePage2[0].action_name,
+        createdAt: activitiesResponsePage2[0].created_at,
+        targetTitle: activitiesResponsePage2[0].target_title,
+        targetType: activitiesResponsePage2[0].target_type
+      }
+
+      // Lägger till activity 101 till arrayen med dom 100 första.
+      viewData.activities.push(oneHundredOneActivity)
+
+      res.render('home/activities', { viewData })
+    } catch (error) {
+      next(error)
     }
-
-    // Plockar ut activity 101 från page 2
-    const oneHundredOneActivity = {
-      actionName: activitiesResponsePage2[0].action_name,
-      createdAt: activitiesResponsePage2[0].created_at,
-      targetTitle: activitiesResponsePage2[0].target_title,
-      targetType: activitiesResponsePage2[0].target_type
-    }
-
-    // Lägger till activity 101 till arrayen med dom 100 första.
-    viewData.activities.push(oneHundredOneActivity)
-
-    res.render('home/activities', { viewData })
   }
 
   /**

@@ -1,8 +1,9 @@
 <div id="container">
-{{#if req.session.loggedIn}}
-  <h1>Hej</h1>
+{{#if isLoggedIn.loggedIn}}
+  <button class="profile-button"><a href="oauth/home">Profile</a></button>
+  <button class="latest-activity-button"><a href="oauth/activities">Latest activities</a></button>
+  <button class="logout-button"><a href="oauth/logout">Logout</a></button>
+ {{else}}
+    <button class="login-button"><a href="oauth/login">Log in with Gitlab.lnu.se</a></button>
  {{/if}}
-
-<button class="login-button"><a href="oauth/login">Log in with Gitlab.lnu.se</a></button>
-
 </div>

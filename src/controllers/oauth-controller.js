@@ -22,7 +22,14 @@ export class OauthController {
    */
   async index (req, res, next) {
     try {
-      res.render('home/index')
+      let loggedIn = false
+      if (req.session.access_token !== undefined) {
+        loggedIn = true
+      }
+      const isLoggedIn = {
+        loggedIn: loggedIn
+      }
+      res.render('home/index', { isLoggedIn })
     } catch (error) {
       next(error)
     }

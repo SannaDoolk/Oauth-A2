@@ -22,6 +22,7 @@ export class OauthController {
    */
   async index (req, res, next) {
     try {
+      // Check if someone is logged in to know if to show log in button or not
       let loggedIn = false
       if (req.session.access_token !== undefined) {
         loggedIn = true
@@ -71,7 +72,7 @@ export class OauthController {
   }
 
   /**
-   * Requests accesstoken from service provider and generates session with it.
+   * Requests accesstoken from service provider and regenerates session with it.
    *
    * @param {object} req - Express request object.
    * @param {object} res - Express request object.
@@ -168,7 +169,7 @@ export class OauthController {
         }))
       }
 
-      // Plockar ut activity 101 från page 2
+      // Get activity 101 from page 2
       const oneHundredOneActivity = {
         actionName: activitiesResponsePage2[0].action_name,
         createdAt: activitiesResponsePage2[0].created_at,
@@ -176,7 +177,7 @@ export class OauthController {
         targetType: activitiesResponsePage2[0].target_type
       }
 
-      // Lägger till activity 101 till arrayen med dom 100 första.
+      // Add activity 101 to the array with the other 100
       viewData.activities.push(oneHundredOneActivity)
 
       res.render('home/activities', { viewData })

@@ -90,12 +90,16 @@ export class OauthController {
           }
         })
         const response = await request.json()
+        console.log(response)
+        if (response.error) {
+          res.redirect('/oauth')
+        } else {
+          req.session.regenerate(() => {
+            req.session.access_token = response.access_token
 
-        req.session.regenerate(() => {
-          req.session.access_token = response.access_token
-
-          res.redirect('home')
-        })
+            res.redirect('home')
+          })
+        }
       } else {
         res.redirect('/oauth')
       }
@@ -147,18 +151,10 @@ export class OauthController {
    */
   async getUserActivities (req, res, next) {
     try {
-      const activitiesRequestPage1 = await fetch(`https://gitlab.lnu.se/api/v4/users/${req.session.userID}/events?per_page=100&page=1&page=1&access_token=${req.session.access_token}`, {
+      const activitiesRequestPage1 = await fetch(`https://gitlab.lnu.se/api/v4/users/${req.session.userID}/events?per_page=100&page=1&access_token=${req.session.access_token}`, {
         method: 'GET'
       })
       const activitiesResponsePage1 = await activitiesRequestPage1.json()
-
-      // Gör ett andra anrop här eftersom gitlab genererar max 100 activities, känns som det borde finnas ett bättre sätt att lösa detta men har inte fått något annat att fungera.
-
-      const activitiesRequestPage2 = await fetch(`https://gitlab.lnu.se/api/v4/users/${req.session.userID}/events?per_page=100&page=2&access_token=${req.session.access_token}`, {
-        method: 'GET'
-      })
-
-      const activitiesResponsePage2 = await activitiesRequestPage2.json()
 
       const viewData = {
         activities: activitiesResponsePage1.map(activity => ({
@@ -169,16 +165,31 @@ export class OauthController {
         }))
       }
 
-      // Get activity 101 from page 2
-      const oneHundredOneActivity = {
-        actionName: activitiesResponsePage2[0].action_name,
-        createdAt: activitiesResponsePage2[0].created_at,
-        targetTitle: activitiesResponsePage2[0].target_title,
-        targetType: activitiesResponsePage2[0].target_type
+      let oneHundredOneActivity
+
+      if (activitiesResponsePage1.length === 100) {
+      // Gör ett andra anrop här eftersom gitlab genererar max 100 activities, känns som det borde finnas ett bättre sätt att lösa detta men har inte fått något annat att fungera.
+        const activitiesRequestPage2 = await fetch(`https://gitlab.lnu.se/api/v4/users/${req.session.userID}/events?per_page=100&page=2&access_token=${req.session.access_token}`, {
+          method: 'GET'
+        })
+
+        const activitiesResponsePage2 = await activitiesRequestPage2.json()
+
+        if (activitiesResponsePage2.length > 0) {
+        // Get activity 101 from page 2
+          oneHundredOneActivity = {
+            actionName: activitiesResponsePage2[0].action_name,
+            createdAt: activitiesResponsePage2[0].created_at,
+            targetTitle: activitiesResponsePage2[0].target_title,
+            targetType: activitiesResponsePage2[0].target_type
+          }
+        }
       }
 
-      // Add activity 101 to the array with the other 100
-      viewData.activities.push(oneHundredOneActivity)
+      // Add activity 101 to the array with the other 100 if it exists
+      if (oneHundredOneActivity) {
+        viewData.activities.push(oneHundredOneActivity)
+      }
 
       res.render('home/activities', { viewData })
     } catch (error) {

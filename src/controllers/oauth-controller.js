@@ -89,8 +89,9 @@ export class OauthController {
             'Content-Type': 'application/json'
           }
         })
+
         const response = await request.json()
-        console.log(response)
+
         if (response.error) {
           res.redirect('/oauth')
         } else {
@@ -124,6 +125,11 @@ export class OauthController {
           'Content-Type': 'application/json'
         }
       })
+
+      if (request.status !== 200) {
+        return next(createError(request.status))
+      }
+
       const userInfoResponse = await request.json()
 
       req.session.userID = userInfoResponse.id
@@ -154,6 +160,11 @@ export class OauthController {
       const activitiesRequestPage1 = await fetch(`https://gitlab.lnu.se/api/v4/users/${req.session.userID}/events?per_page=100&page=1&access_token=${req.session.access_token}`, {
         method: 'GET'
       })
+
+      if (activitiesRequestPage1.status !== 200) {
+        return next(createError(activitiesRequestPage1.status))
+      }
+
       const activitiesResponsePage1 = await activitiesRequestPage1.json()
 
       const viewData = {
@@ -172,6 +183,10 @@ export class OauthController {
         const activitiesRequestPage2 = await fetch(`https://gitlab.lnu.se/api/v4/users/${req.session.userID}/events?per_page=100&page=2&access_token=${req.session.access_token}`, {
           method: 'GET'
         })
+
+        if (activitiesRequestPage2.status !== 200) {
+          return next(createError(activitiesRequestPage2.status))
+        }
 
         const activitiesResponsePage2 = await activitiesRequestPage2.json()
 

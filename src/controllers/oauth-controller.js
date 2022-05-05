@@ -90,6 +90,10 @@ export class OauthController {
           }
         })
 
+        if (request.status !== 200) {
+          return next(createError(request.status))
+        }
+
         const response = await request.json()
 
         if (response.error) {
@@ -115,6 +119,7 @@ export class OauthController {
    * @param {object} req - Express request object.
    * @param {object} res - Express request object.
    * @param {object} next - Express next middleware function.
+   * @returns {Error} error - if response status is not 200.
    */
   async getProfileInfo (req, res, next) {
     try {
@@ -154,6 +159,7 @@ export class OauthController {
    * @param {object} req - Express request object.
    * @param {object} res - Express request object.
    * @param {object} next - Express next middleware function.
+   * @returns {Error} error - if response status is not 200.
    */
   async getUserActivities (req, res, next) {
     try {
@@ -165,6 +171,7 @@ export class OauthController {
         return next(createError(activitiesRequestPage1.status))
       }
 
+      const totalActivities = activitiesRequestPage1.headers.get('x-total')
       const activitiesResponsePage1 = await activitiesRequestPage1.json()
 
       const viewData = {
@@ -176,10 +183,7 @@ export class OauthController {
         }))
       }
 
-      let oneHundredOneActivity
-
-      if (activitiesResponsePage1.length === 100) {
-      // Gör ett andra anrop här eftersom gitlab genererar max 100 activities, känns som det borde finnas ett bättre sätt att lösa detta men har inte fått något annat att fungera.
+      if (totalActivities > 100) {
         const activitiesRequestPage2 = await fetch(`https://gitlab.lnu.se/api/v4/users/${req.session.userID}/events?per_page=100&page=2&access_token=${req.session.access_token}`, {
           method: 'GET'
         })
@@ -190,22 +194,17 @@ export class OauthController {
 
         const activitiesResponsePage2 = await activitiesRequestPage2.json()
 
-        if (activitiesResponsePage2.length > 0) {
         // Get activity 101 from page 2
-          oneHundredOneActivity = {
-            actionName: activitiesResponsePage2[0].action_name,
-            createdAt: activitiesResponsePage2[0].created_at,
-            targetTitle: activitiesResponsePage2[0].target_title,
-            targetType: activitiesResponsePage2[0].target_type
-          }
+        const oneHundredOneActivity = {
+          actionName: activitiesResponsePage2[0].action_name,
+          createdAt: activitiesResponsePage2[0].created_at,
+          targetTitle: activitiesResponsePage2[0].target_title,
+          targetType: activitiesResponsePage2[0].target_type
         }
-      }
 
-      // Add activity 101 to the array with the other 100 if it exists
-      if (oneHundredOneActivity) {
         viewData.activities.push(oneHundredOneActivity)
       }
-
+      console.log(viewData.activities.length)
       res.render('home/activities', { viewData })
     } catch (error) {
       next(error)

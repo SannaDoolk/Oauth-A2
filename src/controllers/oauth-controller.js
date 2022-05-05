@@ -77,6 +77,7 @@ export class OauthController {
    * @param {object} req - Express request object.
    * @param {object} res - Express request object.
    * @param {object} next - Express next middleware function.
+   * @returns {Error} error - if response status is not 200.
    */
   async requestAccessToken (req, res, next) {
     try {
